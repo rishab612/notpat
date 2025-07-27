@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Notepad</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -1px;
+        }
+
+        .room-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .room-info {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .input-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            margin-left: 10px;
+        }
+
+        .editor-section {
+            display: none;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .editor-section.show {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .editor-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .online-users {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        #editor {
+            width: 100%;
+            height: 400px;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        #editor:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.disconnected {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .room-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .leave-room-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .leave-room-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .btn-secondary {
+                margin-left: 0;
+            }
+            
+            #editor {
+                height: 300px;
+            }
+
+            .room-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Collaborative Notepad</h1>
+        
+        <div id="room-section" class="room-section">
+            <div class="input-group">
+                <div class="input-container">
+                    <input type="text" id="roomCode" placeholder="Enter Room Code (e.g., meeting-2024)" maxlength="50">
+                </div>
+                
+                <div class="room-controls">
+                    <button class="btn" onclick="joinRoom()">Join Room</button>
+                    <button class="btn btn-secondary" onclick="createRoom()">Create New Room</button>
+                </div>
+            </div>
+            
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+        </div>
+
+        <div id="editor-section" class="editor-section">
+            <div class="editor-header">
+                <div class="editor-title" id="room-title">Room: </div>
+                <div class="online-users">
+                    <span>👥</span>
+                    <div class="user-count" id="user-count">1 user online</div>
+                    <button class="leave-room-btn" onclick="leaveRoom()">Leave Room</button>
+                </div>
+            </div>
+            
+            <textarea id="editor" placeholder="Start typing your notes here... Your changes will be synchronized with other users in real-time."></textarea>
+            
+            <div class="status-bar">
+                <div class="connection-status">
+                    <div class="status-indicator" id="status-indicator"></div>
+                    <span id="connection-text">Connected</span>
+                </div>
+                <div id="last-saved">Ready to save...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let currentRoom = '';
+        let isConnected = false;
+        let userCount = 1;
+        let lastContent = '';
+        let isUpdating = false;
+        const clientId = generateUniqueId();
+
+        function generateUniqueId() {
+            return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function validateRoomCode(code) {
+            if (!code || code.trim().length < 3) {
+                showError('Room code must be at least 3 characters long');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9-_]+$/.test(code)) {
+                showError('Room code can only contain letters, numbers, hyphens, and underscores');
+                return false;
+            }
+            return true;
+        }
+
+        function connectToServer() {
+            return new Promise((resolve, reject) => {
+                try {
+                    socket = new WebSocket('ws://localhost:3000');
+                    
+                    socket.onopen = () => {
+                        console.log('Connected to server');
+                        isConnected = true;
+                        updateConnectionStatus();
+                        resolve();
+                    };
+
+                    socket.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        handleServerMessage(data);
+                    };
+
+                    socket.onclose = () => {
+                        console.log('Disconnected from server');
+                        isConnected = false;
+                        updateConnectionStatus();
+                        showError('Connection lost. Please refresh the page to reconnect.');
+                    };
+
+                    socket.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        isConnected = false;
+                        updateConnectionStatus();
+                        reject(error);
+                    };
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        function handleServerMessage(data) {
+            switch (data.action) {
+                case 'load-content':
+                    // Load existing content when joining a room
+                    isUpdating = true;
+                    document.getElementById('editor').value = data.content;
+                    lastContent = data.content;
+                    isUpdating = false;
+                    document.getElementById('last-saved').textContent = 'Content loaded';
+                    break;
+                    
+                case 'update-content':
+                    // Update content from other users
+                    if (!isUpdating) {
+                        const editor = document.getElementById('editor');
+                        const cursorPos = editor.selectionStart;
+                        isUpdating = true;
+                        editor.value = data.content;
+                        lastContent = data.content;
+                        // Restore cursor position
+                        editor.setSelectionRange(cursorPos, cursorPos);
+                        isUpdating = false;
+                        document.getElementById('last-saved').textContent = 'Updated by other user';
+                    }
+                    break;
+                    
+                case 'room-created':
+                    showSuccess(`Room "${currentRoom}" created successfully!`);
+                    break;
+                    
+                case 'room-joined':
+                    showSuccess(`Joined room "${currentRoom}" successfully!`);
+                    break;
+
+                case 'user-count-update':
+                    userCount = data.count;
+                    updateUserCount();
+                    break;
+                    
+                default:
+                    if (data.error) {
+                        showError(data.error);
+                        // Reset to room selection if there's an error
+                        resetToRoomSelection();
+                    }
+                    break;
+            }
+        }
+
+        function createRoom() {
+            const roomCode = document.getElementById('roomCode').value.trim();
+            
+            if (!validateRoomCode(roomCode)) return;
+
+            // Generate a unique room code
+            const newRoomCode = roomCode + '-' + Math.random().toString(36).substr(2, 6);
+            currentRoom = newRoomCode;
+            
+            connectToServer().then(() => {
+                // Send create room message
+                socket.send(JSON.stringify({
+                    action: 'create-room',
+                    roomName: currentRoom
+                }));
+                
+                // Show editor section
+                showEditorSection();
+            }).catch((error) => {
+                showError('Failed to connect to server. Please check if the server is running.');
+                console.error('Connection error:', error);
+            });
+        }
+
+        function joinRoom() {
+            const roomCode = document.getElementById('roomCode').value.trim();
+            
+            if (!validateRoomCode(roomCode)) return;
+
+            currentRoom = roomCode;
+            
+            connectToServer().then(() => {
+                // Send join room message
+                socket.send(JSON.stringify({
+                    action: 'join-room',
+                    roomName: currentRoom
+                }));
+                
+                // Show editor section
+                showEditorSection();
+            }).catch((error) => {
+                showError('Failed to connect to server. Please check if the server is running.');
+                console.error('Connection error:', error);
+            });
+        }
+
+        function leaveRoom() {
+            if (socket) {
+                socket.close();
+            }
+            resetToRoomSelection();
+            showSuccess('Left the room successfully');
+        }
+
+        function showEditorSection() {
+            document.getElementById('room-section').style.display = 'none';
+            document.getElementById('editor-section').classList.add('show');
+            document.getElementById('room-title').textContent = `Room: ${currentRoom}`;
+            setupEditor();
+        }
+
+        function resetToRoomSelection() {
+            document.getElementById('room-section').style.display = 'block';
+            document.getElementById('editor-section').classList.remove('show');
+            document.getElementById('roomCode').value = '';
+            currentRoom = '';
+            userCount = 1;
+            updateUserCount();
+            if (socket) {
+                socket.close();
+            }
+        }
+
+        function setupEditor() {
+            const editor = document.getElementById('editor');
+            let debounceTimeout;
+            
+            editor.addEventListener('input', function() {
+                if (isUpdating) return;
+                
+                // Clear previous timeout
+                clearTimeout(debounceTimeout);
+                
+                // Update UI immediately
+                document.getElementById('last-saved').textContent = 'Typing...';
+                
+                // Debounce the server update
+                debounceTimeout = setTimeout(() => {
+                    sendContentUpdate();
+                }, 300); // Send updates after 300ms of no typing
+            });
+
+            // Focus on the editor
+            editor.focus();
+        }
+
+        function sendContentUpdate() {
+            if (!socket || !isConnected || isUpdating) return;
+            
+            const content = document.getElementById('editor').value;
+            
+            // Only send if content actually changed
+            if (content !== lastContent) {
+                lastContent = content;
+                
+                socket.send(JSON.stringify({
+                    action: 'update-content',
+                    roomName: currentRoom,
+                    content: content
+                }));
+                
+                document.getElementById('last-saved').textContent = 'Saved at ' + new Date().toLocaleTimeString();
+            }
+        }
+
+        function updateConnectionStatus() {
+            const indicator = document.getElementById('status-indicator');
+            const text = document.getElementById('connection-text');
+            
+            if (isConnected) {
+                indicator.classList.remove('disconnected');
+                text.textContent = 'Connected';
+            } else {
+                indicator.classList.add('disconnected');  
+                text.textContent = 'Disconnected';
+            }
+        }
+
+        function updateUserCount() {
+            document.getElementById('user-count').textContent = `${userCount} user${userCount !== 1 ? 's' : ''} online`;
+        }
+
+        // Handle page refresh/close
+        window.addEventListener('beforeunload', function() {
+            if (socket && isConnected) {
+                sendContentUpdate();
+            }
+        });
+
+        // Enter key support for room code input
+        document.getElementById('roomCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                joinRoom();
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('editor').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.max(400, this.scrollHeight) + 'px';
+        });
+    </script>
+</body>
+</html>

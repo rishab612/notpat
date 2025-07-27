@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f8f8f8;
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+  }
+  
+  .container {
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+  }
+  
+  input, button {
+    padding: 10px;
+    margin: 10px;
+    font-size: 16px;
+  }
+  
+  textarea {
+    width: 100%;
+    height: 300px;
+    padding: 10px;
+    font-size: 16px;
+  }
+  
